@@ -1,0 +1,112 @@
+/* src/styles/globals.css */
+
+/*
+  Add your standard Tailwind CSS imports here if using an older setup:
+  @tailwind base;
+  @tailwind components;
+  @tailwind utilities;
+*/
+
+/* --- Custom Animations & Scroll Reveal --- */
+
+/* Base State: Hidden/Translated */
+.scroll-reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+
+/* Revealed State: Visible/Original Position */
+.scroll-reveal.reveal {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Hero elements often need a different initial state or delay */
+/* These classes should be applied directly in App.jsx or Hero.jsx */
+.hero-headline {
+    /* Initial opacity: 0 is applied in JSX, but this sets the transition */
+    transition: opacity 1s ease-out 0.2s, transform 1s ease-out 0.2s;
+    transform: translateY(20px);
+}
+.hero-headline.reveal {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.hero-subhead {
+    transition: opacity 1s ease-out 0.4s, transform 1s ease-out 0.4s;
+    transform: translateY(20px);
+}
+.hero-subhead.reveal {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.hero-cta-1 {
+    transition: opacity 1s ease-out 0.6s, transform 1s ease-out 0.6s;
+}
+.hero-cta-1.reveal {
+    opacity: 1;
+}
+
+.hero-cta-2 {
+    transition: opacity 1s ease-out 0.8s, transform 1s ease-out 0.8s;
+}
+.hero-cta-2.reveal {
+    opacity: 1;
+}
+
+.hero-model {
+    transition: opacity 1s ease-out 0.2s;
+}
+.hero-model.reveal {
+    opacity: 1;
+}
+
+/* Optional: Keyframe animations used in Hero section */
+@keyframes pulse-slow {
+    0%, 100% {
+        opacity: 0.15;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.3;
+        transform: scale(1.05);
+    }
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(-5px);
+    }
+    50% {
+        transform: translateY(5px);
+    }
+}
+
+@keyframes pulse-ring {
+    0% {
+        box-shadow: 0 0 0 0 rgba(6, 182, 212, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(6, 182, 212, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(6, 182, 212, 0);
+    }
+}
+
+.animate-pulse-slow {
+    animation: pulse-slow 6s infinite ease-in-out;
+}
+
+.animate-float {
+    animation: float 4s infinite ease-in-out;
+}
+
+.animate-pulse-ring {
+    animation: pulse-ring 2s infinite;
+}
+
+/* Add any other global styles here */
