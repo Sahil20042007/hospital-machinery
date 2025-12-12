@@ -1,97 +1,231 @@
-import React, { useState } from 'react';
-import HotspotModal from './Modal'; // Assuming your Modal component is named Modal.jsx and imported as HotspotModal
+import React, { useState, useEffect, useRef, Suspense } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { LocateFixed } from 'lucide-react';
+import * as THREE from 'three';
+import Modal from './Modal';
 
-// NOTE: The prop is safely destructured here to prevent the map error:
-// 'data' is the incoming prop name from App.jsx, and we rename it to 'hotspots' 
-// while setting a default of [] (empty array).
-const DemoSection = ({ data: hotspots = [] }) => {
-    const [selectedHotspot, setSelectedHotspot] = useState(null);
+// Lazy-loaded Three.js setup for performance
+const ThreeDViewer = ({ onHotspotPositionUpdate }) => {
+  const canvasRef = useRef(null);
+  const sceneRef = useRef(null);
+  const cameraRef = useRef(null);
+  const rendererRef = useRef(null);
+  const modelRef = useRef(null);
 
-    const handleHotspotClick = (hotspotId) => {
-        const hotspot = hotspots.find(h => h.id === hotspotId);
-        setSelectedHotspot(hotspot);
+  useEffect(() => {
+    if (!canvasRef.current) return;
+
+    // Scene setup
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0f172a);
+    sceneRef.current = scene;
+
+    // Camera setup
+    const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 1000);
+    camera.position.set(0, 1, 5);
+    cameraRef.current = camera;
+
+    // Renderer setup with capped pixel ratio for mobile performance
+    const renderer = new THREE.WebGLRenderer({
+      canvas: canvasRef.current,
+      antialias: true,
+      alpha: true
+    });
+    renderer.setSize(600, 500);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    rendererRef.current = renderer;
+
+    // Lighting
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+    scene.add(ambientLight);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    directionalLight.position.set(5, 5, 5);
+    scene.add(directionalLight);
+
+    // Create procedural model (fallback - replace with GLTFLoader for actual model)
+    // To use a real model: import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+    // const loader = new GLTFLoader();
+    // loader.load('/models/demo.glb', (gltf) => { scene.add(gltf.scene); });
+    
+    const group = new THREE.Group();
+    const bodyGeometry = new THREE.BoxGeometry(1.5, 1, 1.5);
+    const bodyMaterial = new THREE.MeshStandardMaterial({ color: 0x2563eb, metalness: 0.7, roughness: 0.3 });
+    const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+    group.add(body);
+
+    const cylinderGeometry = new THREE.CylinderGeometry(0.15, 0.15, 0.8, 32);
+    const cylinderMaterial = new THREE.MeshStandardMaterial({ color: 0x14b8a6, metalness: 0.8, roughness: 0.2 });
+    [-0.5, 0.5].forEach((x) => {
+      const cylinder = new THREE.Mesh(cylinderGeometry, cylinderMaterial);
+      cylinder.position.set(x, 0.9, 0);
+      group.add(cylinder);
+    });
+
+    scene.add(group);
+    modelRef.current = group;
+
+    // Animation loop
+    let animationId;
+    const animate = () => {
+      animationId = requestAnimationFrame(animate);
+      group.rotation.y += 0.005;
+      
+      // Update hotspot positions (map 3D to 2D)
+      if (onHotspotPositionUpdate) {
+        const positions = [
+          new THREE.Vector3(-0.5, 0.8, 0),
+          new THREE.Vector3(0.6, 0, 0.3),
+          new THREE.Vector3(0, -0.5, 0.8)
+        ].map(pos => {
+          const vector = pos.clone().project(camera);
+          return {
+            x: (vector.x * 0.5 + 0.5) * 600,
+            y: (-(vector.y) * 0.5 + 0.5) * 500,
+            visible: vector.z < 1
+          };
+        });
+        onHotspotPositionUpdate(positions);
+      }
+      
+      renderer.render(scene, camera);
     };
+    animate();
 
-    return (
-        <section id="demo" className="py-24 px-4 sm:px-6 lg:px-8 bg-slate-800">
-            <div className="max-w-7xl mx-auto">
-                {/* Heading */}
-                <div className="text-center mb-16 scroll-reveal">
-                    <h2 className="text-4xl md:text-5xl font-extrabold text-white mb-4">
-                        Interactive 3D Demo
-                    </h2>
-                    <p className="text-xl text-slate-400 max-w-3xl mx-auto">
-                        Click the hotspots to view detailed analysis and maintenance reports on the medical device.
-                    </p>
-                </div>
+    // Cleanup
+    return () => {
+      cancelAnimationFrame(animationId);
+      renderer.dispose();
+      scene.traverse((object) => {
+        if (object.geometry) object.geometry.dispose();
+        if (object.material) {
+          if (Array.isArray(object.material)) {
+            object.material.forEach(mat => mat.dispose());
+          } else {
+            object.material.dispose();
+          }
+        }
+      });
+    };
+  }, [onHotspotPositionUpdate]);
 
-                {/* 3D Model Container (The core of the demo) */}
-                <div className="relative w-full h-[500px] md:h-[650px] bg-slate-900 rounded-3xl shadow-2xl overflow-hidden border border-teal-500/30 scroll-reveal">
-                    
-                    {/* Placeholder for the 3D Model/Image */}
-                    <div className="flex items-center justify-center w-full h-full">
-                        {/* Replace this div with your actual 3D model (e.g., using Three.js, Babylon.js, or an iframe) */}
-                        <div className="text-slate-600 text-2xl p-10 text-center italic">
-                            [Placeholder for Interactive Medical Device Model]
-                            <p className="text-lg mt-2">Visualization powered by WebGL/Three.js</p>
-                        </div>
-                    </div>
-
-                    {/* Hotspots Layout */}
-                    {/* NOTE: Hotspots are absolutely positioned relative to the container */}
-                    
-                    {hotspots.length === 0 && (
-                        <p className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-slate-500 z-10">
-                            Hotspot data is not available.
-                        </p>
-                    )}
-
-                    {hotspots.map((hotspot) => (
-                        <button
-                            key={hotspot.id}
-                            onClick={() => handleHotspotClick(hotspot.id)}
-                            className={`
-                                absolute flex items-center justify-center w-6 h-6 rounded-full bg-cyan-400 
-                                cursor-pointer z-20 transition-all duration-300 animate-pulse-ring
-                                hover:scale-150 hover:bg-teal-300
-                            `}
-                            // NOTE: You need to set these 'top' and 'left' values based on 
-                            // the actual coordinates in your 3D model viewer.
-                            style={{ 
-                                top: hotspot.id === 1 ? '30%' : hotspot.id === 2 ? '50%' : '75%', 
-                                left: hotspot.id === 1 ? '65%' : hotspot.id === 2 ? '40%' : '25%',
-                                animationDelay: `${hotspot.id * 0.5}s`
-                            }}
-                            aria-label={`View details for Hotspot ${hotspot.id}: ${hotspot.label}`}
-                        >
-                            <LocateFixed className="w-4 h-4 text-slate-900" />
-                        </button>
-                    ))}
-
-                    {/* Hotspot Labels (optional) */}
-                    {hotspots.map((hotspot) => (
-                        <div
-                            key={`label-${hotspot.id}`}
-                            className="absolute bg-slate-900/80 backdrop-blur-sm px-3 py-1 text-sm rounded-lg text-teal-300 border border-slate-700 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"
-                            style={{
-                                top: hotspot.id === 1 ? '25%' : hotspot.id === 2 ? '45%' : '70%', 
-                                left: hotspot.id === 1 ? '70%' : hotspot.id === 2 ? '45%' : '30%',
-                            }}
-                        >
-                            {hotspot.label}
-                        </div>
-                    ))}
-                </div>
-            </div>
-            
-            {/* Modal for displaying hotspot details */}
-            <HotspotModal 
-                hotspot={selectedHotspot} 
-                setSelectedHotspot={setSelectedHotspot} 
-            />
-        </section>
-    );
+  return <canvas ref={canvasRef} className="w-full h-full rounded-xl" />;
 };
 
-export default DemoSection;
+const Demo = ({ data: hotspots = [] }) => {
+  const [selectedHotspot, setSelectedHotspot] = useState(null);
+  const [hotspotPositions, setHotspotPositions] = useState([]);
+
+  return (
+    <section id="demo" className="py-24 px-4 sm:px-6 lg:px-8 bg-slate-800">
+      <div className="max-w-7xl mx-auto">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
+          className="text-center mb-16"
+        >
+          <h2 className="text-4xl md:text-5xl font-bold mb-4">
+            Interactive 3D Demo
+          </h2>
+          <p className="text-xl text-slate-400 max-w-3xl mx-auto">
+            Click hotspots to view detailed analysis and maintenance reports
+          </p>
+        </motion.div>
+
+        <div className="relative w-full h-[500px] bg-slate-900 rounded-3xl shadow-2xl overflow-hidden border border-teal-500/30">
+          <Suspense fallback={<div className="flex items-center justify-center h-full">Loading 3D Model...</div>}>
+            <ThreeDViewer onHotspotPositionUpdate={setHotspotPositions} />
+          </Suspense>
+
+          {/* Hotspots with ripple animation */}
+         {hotspots.map((hotspot, i) => {
+    const pos = hotspotPositions[i] || { x: 0, y: 0, visible: false };
+    
+    return pos.visible && (
+        <motion.button
+            key={hotspot.id}
+            onClick={() => setSelectedHotspot(hotspot)}
+            className="motion-element absolute w-8 h-8 rounded-full bg-cyan-400 cursor-pointer z-20 flex items-center justify-center"
+            style={{ left: `${pos.x}px`, top: `${pos.y}px`, transform: 'translate(-50%, -50%)' }}
+            
+            // Interaction animations (Scale, Rotate, Hover Shadow)
+            whileHover={{ 
+                scale: 1.4, 
+                rotate: 180,
+                // Add an external shadow on hover for extra pop
+                boxShadow: '0 0 30px rgba(6, 182, 212, 0.8)',
+            }}
+            whileTap={{ scale: 0.9 }}
+            
+            // Looping/Pulse animation for the Box Shadow
+            animate={{
+                boxShadow: [
+                    '0 0 0 0 rgba(6, 182, 212, 0.7)',
+                    '0 0 0 15px rgba(6, 182, 212, 0)',
+                ]
+            }}
+            
+            // --- CONSOLIDATED TRANSITION PROP (BUG FIX) ---
+            transition={{ 
+                // General spring transition for scale/rotate/tap interactions
+                type: 'spring', 
+                stiffness: 400, 
+                damping: 17,
+                
+                // Specific transition settings for the 'boxShadow' pulse animation
+                // This ensures the pulse repeats infinitely while the button is rendered.
+                boxShadow: { 
+                    repeat: Infinity, 
+                    duration: 2,
+                    ease: "easeInOut"
+                }
+            }}
+            // --- END OF CONSOLIDATED TRANSITION ---
+            
+            aria-label={`Hotspot ${hotspot.id}: ${hotspot.label}`}
+        >
+            <LocateFixed className="w-4 h-4 text-slate-900" />
+        </motion.button>
+    );
+})}
+        </div>
+
+        {/* Hotspot Legend */}
+        <div className="mt-8 grid md:grid-cols-3 gap-6">
+          {hotspots.map((spot, i) => (
+            <motion.div
+              key={spot.id}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.1 }}
+              className="bg-slate-900/70 p-6 rounded-xl border border-slate-700 hover:border-teal-500 transition cursor-pointer"
+              onClick={() => setSelectedHotspot(spot)}
+              whileHover={{ y: -5 }}
+            >
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 bg-teal-500 rounded-full flex items-center justify-center font-bold shrink-0">
+                  {spot.id}
+                </div>
+                <div>
+                  <h4 className="font-bold mb-2">{spot.label}</h4>
+                  <p className="text-sm text-slate-400">{spot.description}</p>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+
+      {/* Modal with AnimatePresence */}
+      <AnimatePresence>
+        {selectedHotspot && (
+          <Modal hotspot={selectedHotspot} onClose={() => setSelectedHotspot(null)} />
+        )}
+      </AnimatePresence>
+    </section>
+  );
+};
+
+export default Demo;

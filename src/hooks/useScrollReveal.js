@@ -1,54 +1,64 @@
-// src/hooks/useScrollReveal.js
 import { useEffect } from 'react';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 /**
- * Custom hook to apply a 'reveal' class to elements with the 'scroll-reveal' class
- * when they enter the viewport.
- * * @param {number} threshold - The percentage of the target element visible before the callback is invoked (0.0 to 1.0).
- * @param {string} selector - The CSS selector for elements to observe.
+ * GSAP-based scroll reveal hook
+ * Replaces IntersectionObserver with GSAP ScrollTrigger for hardware-accelerated animations
+ * 
+ * Performance note: This hook applies transform/opacity animations only (GPU-accelerated)
+ * Call refresh() when dynamic content is added to recalculate ScrollTrigger positions
  */
-const useScrollReveal = (threshold = 0.1, selector = '.scroll-reveal') => {
+const useScrollReveal = (selector = '.scroll-reveal') => {
   useEffect(() => {
-    // Check if the Intersection Observer API is available
-    if (!('IntersectionObserver' in window)) {
-      // Fallback for older browsers (optional: just display elements immediately)
-      document.querySelectorAll(selector).forEach(el => {
-        el.classList.add('reveal');
-      });
-      return;
-    }
+    // Ensure ScrollTrigger is registered
+    gsap.registerPlugin(ScrollTrigger);
 
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          // Add the reveal class when element enters viewport
-          entry.target.classList.add('reveal');
-          // Stop observing once it's revealed
-          observer.unobserve(entry.target); 
+    // Find all elements with the selector
+    const elements = gsap.utils.toArray(selector);
+
+    if (elements.length === 0) return;
+
+    // Apply GSAP animation to each element
+    elements.forEach((el) => {
+      gsap.fromTo(
+        el,
+        {
+          opacity: 0,
+          y: 50,
+          rotationX: -5
+        },
+        {
+          opacity: 1,
+          y: 0,
+          rotationX: 0,
+          duration: 0.8,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: el,
+            start: 'top 85%',
+            end: 'bottom 20%',
+            toggleActions: 'play none none reverse',
+            // Use matchMedia to disable on mobile for performance
+            ...gsap.matchMedia().add('(max-width: 768px)', {
+              start: 'top 90%'
+            })
+          }
         }
-      });
-    }, { threshold });
-
-    // Find all elements to observe
-    const elementsToObserve = document.querySelectorAll(selector);
-    
-    // Start observing each element
-    elementsToObserve.forEach(el => {
-      observer.observe(el);
+      );
     });
 
-    // Cleanup function: disconnect the observer when the component unmounts
-    return () => observer.disconnect();
-  }, [threshold, selector]);
+    // Cleanup function
+    return () => {
+      ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
+    };
+  }, [selector]);
+
+  // Expose refresh utility
+  const refresh = () => ScrollTrigger.refresh();
+  const kill = () => ScrollTrigger.getAll().forEach((t) => t.kill());
+
+  return { refresh, kill };
 };
 
 export default useScrollReveal;
-
-// NOTE: To use this, you need to import it into src/App.jsx and replace the old useEffect:
-// import useScrollReveal from './hooks/useScrollReveal';
-// ...
-// const App = () => {
-//   // ... state and refs
-//   useScrollReveal(); // Call the hook here
-//   // ... rest of the component
-// }

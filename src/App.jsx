@@ -1,4 +1,6 @@
 import React from 'react';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import Modules from './components/Modules';
@@ -15,10 +17,14 @@ import useScrollReveal from './hooks/useScrollReveal';
 // Import global styles (including the scroll-reveal CSS)
 import './styles/globals.css'; 
 
+// --- GSAP FIX: REGISTER PLUGIN GLOBALLY ---
+// This must run once at the application's entry point before any component uses it.
+gsap.registerPlugin(ScrollTrigger); 
+
+// --- Component Imports ---
+
 
 // --- 🧩 APPLICATION DATA ---
-// NOTE: This data object holds ALL content for the application.
-// Ensure all necessary keys are present for the child components.
 const data = {
     // Data for the <Modules /> component
     modules: [
@@ -100,7 +106,6 @@ const data = {
         { id: 2, label: 'Cooling Vent', description: 'Optimize airflow for thermal management and drag reduction using CFD.', details: 'CFD setup: K-epsilon turbulence model, transient analysis.' },
         { id: 3, label: 'Actuator Mount', description: 'Verify stiffness and deflection under maximum operational load.', details: 'FEA setup: Static load case, fixed constraint at base.' },
     ],
-
 };
 // --- END APPLICATION DATA ---
 
