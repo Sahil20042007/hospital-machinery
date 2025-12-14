@@ -1,132 +1,161 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
-import { Download, Menu, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Menu, X, ArrowRight } from 'lucide-react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-// NOTE: ScrollTrigger plugin registration is handled in App.jsx
 
 const Navbar = () => {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
-    
-    const navRef = useRef(null); 
+    const navRef = useRef(null);
 
+    // --- 1. SCROLL TRIGGER LOGIC ---
     useEffect(() => {
-        // Wrap ScrollTrigger setup in gsap.context() for scoping and cleanup
         let ctx = gsap.context(() => {
-            
-            // ScrollTrigger.create will now work because the plugin is registered in App.jsx
             ScrollTrigger.create({
-                trigger: document.body, // Use the body for global scroll listener
-                start: 'top -50',      // Trigger after 50px of scroll
+                trigger: document.body,
+                start: 'top -50',
                 end: 99999,
                 onUpdate: (self) => {
-                    // Update the state based on scroll position
                     setScrolled(self.progress > 0);
                 }
             });
-            
-        }, navRef); // Scope the context to this component
+        }, navRef);
+        return () => ctx.revert();
+    }, []);
 
-        // Clean up the context and destroy the ScrollTrigger instance
-        return () => ctx.revert(); 
-    }, []); // Runs once on mount.
-    
-    const handleDownloadManual = () => {
-        window.open('/manuals/sample.pdf', '_blank');
-    };
+    // --- 2. LINKS DATA ---
+    const links = ['About', 'Modules', 'Manual', 'Demo', 'Curriculum'];
 
     return (
         <motion.nav
-            ref={navRef} // Attach the ref here
+            ref={navRef}
             initial={{ y: -100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.6, ease: 'easeOut' }}
-            // Apply transition classes and conditional styling based on 'scrolled' state
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }} // "Apple-style" ease
             className={`fixed top-0 w-full z-50 transition-all duration-500 ${
                 scrolled 
-                    ? 'bg-transparent/95 backdrop-blur-lg shadow-2xl shadow-blue-900/20 border-b border-slate-800/50 py-3' 
-                    : 'bg-transparent py-5'
+                ? 'bg-black/80 backdrop-blur-md py-4 border-b border-white/10' 
+                : 'bg-transparent py-8'
             }`}
-            role="navigation"
-            aria-label="Main navigation"
         >
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-[1400px] mx-auto px-6 md:px-12">
                 <div className="flex justify-between items-center">
-                    <motion.div 
-                        className="flex items-center space-x-3"
-                        whileHover={{ scale: 1.02 }}
-                    >
-                         <div className="w-12 h-12 bg-gradient-to-br from-blue-600 via-teal-500 to-cyan-400 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/50">
-                            <span className="text-white font-bold text-xl">HM</span>
-                        </div>
-                        <div>
-                            <span className="text-xl font-bold block">Hospital Manufacturing</span>
-                            <span className="text-xs text-slate-400">Medical Device Excellence</span>
-                        </div>
-                    </motion.div>
 
-                    <div className="hidden lg:flex space-x-8 items-center">
-                        {['About', 'Modules', 'Manual', 'Demo', 'Curriculum', 'Testimonials'].map((item) => (
-                             <motion.a
-                                key={item}
-                                href={`#${item.toLowerCase()}`}
-                                className="text-slate-300 hover:text-teal-400 transition font-medium"
-                                whileHover={{ y: -2 }}
-                                whileTap={{ scale: 0.95 }}
-                            >
+                    {/* --- LEFT: NAVIGATION LINKS (The "Avant-Garde" Switch) --- */}
+                    <div className="hidden lg:flex items-center gap-8">
+                        {links.map((item, i) => (
+                            <MagneticLink key={item} href={`#${item.toLowerCase()}`}>
                                 {item}
-                            </motion.a>
+                            </MagneticLink>
                         ))}
-                        <motion.button
-                            onClick={handleDownloadManual}
-                            className="border-2 border-teal-500 text-teal-400 px-5 py-2 rounded-lg hover:bg-teal-500/10 transition font-semibold flex items-center gap-2"
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                        >
-                            <Download className="w-4 h-4" />
-                            Manual
-                        </motion.button>
-                        <motion.button
-                            className="bg-gradient-to-r from-blue-600 to-teal-600 px-6 py-2 rounded-lg font-semibold"
-                            whileHover={{ scale: 1.05, boxShadow: '0 0 30px rgba(20, 184, 166, 0.5)' }}
-                            whileTap={{ scale: 0.95 }}
-                        >
+                        
+                        {/* "Enroll" is now a text link with an arrow, editorial style */}
+                        <a href="#enroll" className="group flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-[#A100FF] hover:text-white transition-colors">
                             Enroll Now
-                        </motion.button>
+                            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                        </a>
                     </div>
 
-                    <button 
-                        className="lg:hidden p-2 hover:bg-slate-800 rounded-lg transition"
-                        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                        aria-label="Toggle menu"
-                    >
-                        {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-                    </button>
-                </div>
+                    {/* --- MOBILE TOGGLE (Left side on mobile) --- */}
+                    <div className="lg:hidden">
+                        <button 
+                            onClick={() => setMobileMenuOpen(true)}
+                            className="text-white p-2 hover:bg-white/10 rounded-full transition-colors"
+                        >
+                            <Menu className="w-6 h-6" />
+                        </button>
+                    </div>
 
+                    {/* --- RIGHT: BRAND NAME (The "Name at the Last") --- */}
+                    {/* This mimics the Rejouice style of big, corner-anchored branding */}
+                    <motion.div 
+                        className="text-right"
+                        whileHover={{ scale: 0.98 }}
+                    >
+                        <a href="#" className="block group">
+                            <h1 className="text-xl md:text-2xl font-bold tracking-tighter text-white uppercase leading-none group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-blue-400 group-hover:to-teal-400 transition-all duration-300">
+                                Hospital Mfg.
+                            </h1>
+                            <span className="text-[10px] md:text-xs font-mono text-gray-400 tracking-[0.2em] uppercase group-hover:text-white transition-colors">
+                                Est. 2025 • Medical Excellence
+                            </span>
+                        </a>
+                    </motion.div>
+
+                </div>
+            </div>
+
+            {/* --- 3. FULL SCREEN MOBILE MENU (Rejouice Style) --- */}
+            <AnimatePresence>
                 {mobileMenuOpen && (
                     <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
-                        className="lg:hidden pb-4 space-y-3 border-t border-slate-800 pt-4"
+                        initial={{ opacity: 0, y: '-100%' }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: '-100%' }}
+                        transition={{ duration: 0.5, ease: [0.76, 0, 0.24, 1] }} // Bezier curve for premium feel
+                        className="fixed inset-0 bg-black z-[60] flex flex-col p-8 md:p-12"
                     >
-                        {/* Ensure mobile menu links match desktop and data section names */}
-                        {['About', 'Modules', 'Steps', 'Manual', 'Demo', 'Curriculum', 'Testimonials'].map((item) => (
-                            <a 
-                                key={item}
-                                href={`#${item.toLowerCase()}`}
-                                className="block text-slate-300 hover:text-teal-400 py-2"
+                        {/* Mobile Header */}
+                        <div className="flex justify-between items-start mb-20">
+                            <span className="text-xs font-mono text-gray-500 uppercase tracking-widest">Navigation</span>
+                            <button 
                                 onClick={() => setMobileMenuOpen(false)}
+                                className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors text-white"
                             >
-                                {item}
-                            </a>
-                        ))}
+                                <X className="w-6 h-6" />
+                            </button>
+                        </div>
+
+                        {/* Mobile Links (Massive Text like Rejouice) */}
+                        <div className="flex flex-col gap-6">
+                            {[...links, 'Enroll Now'].map((item, i) => (
+                                <motion.a
+                                    key={item}
+                                    href={`#${item.toLowerCase().replace(' ', '-')}`}
+                                    onClick={() => setMobileMenuOpen(false)}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.1 + (i * 0.05) }}
+                                    className="text-5xl md:text-7xl font-bold text-white hover:text-[#A100FF] transition-colors tracking-tight"
+                                >
+                                    {item}
+                                </motion.a>
+                            ))}
+                        </div>
+
+                        {/* Mobile Footer Brand */}
+                        <div className="mt-auto pt-12 border-t border-white/10">
+                            <h2 className="text-2xl font-bold text-white tracking-tighter uppercase">Hospital Mfg.</h2>
+                        </div>
                     </motion.div>
                 )}
-            </div>
+            </AnimatePresence>
         </motion.nav>
+    );
+};
+
+// --- SUB-COMPONENT: MAGNETIC LINK ---
+// Adds a subtle "pull" effect to links on hover
+const MagneticLink = ({ href, children }) => {
+    return (
+        <motion.a
+            href={href}
+            className="relative text-sm font-medium text-gray-300 hover:text-white uppercase tracking-widest transition-colors py-2"
+            whileHover="hover"
+        >
+            {children}
+            {/* The "Underline" that slides in */}
+            <motion.span 
+                className="absolute bottom-0 left-0 w-full h-[1px] bg-white origin-left"
+                variants={{
+                    hover: { scaleX: 1 },
+                    initial: { scaleX: 0 }
+                }}
+                initial="initial"
+                transition={{ duration: 0.3 }}
+            />
+        </motion.a>
     );
 };
 

@@ -1,106 +1,121 @@
-// src/components/Footer.jsx
 import React from 'react';
-import { Mail, MapPin, Phone } from 'lucide-react';
+import { ArrowRight, ArrowUpRight } from 'lucide-react';
 
 const Footer = () => {
   const partners = [
     'Mayo Clinic', 
     'Cleveland Clinic', 
-    'Johns Hopkins Medicine', 
-    'Massachusetts General Hospital',
-    'Stanford Health Care',
-    'UCSF Medical Center'
+    'Johns Hopkins', 
+    'Mass General',
+    'Stanford Health',
+    'UCSF Medical'
   ];
 
-  const handleNewsletterSubmit = (e) => {
-    e.preventDefault();
-    const email = e.target.email.value;
-    alert(`Newsletter signup: ${email}`);
-  };
-
   return (
-    <footer className="bg-transparent border-t border-slate-800 py-16 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
+    <footer className="bg-black text-white pt-20 pb-6 px-6 overflow-hidden border-t border-white/10">
+      <div className="max-w-[1400px] mx-auto">
+        
+        {/* --- TOP SECTION: Content Grid --- */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-0 mb-24">
           
-          {/* Column 1: Logo & Mission */}
-          <div className="space-y-4">
-            <div className="flex items-center space-x-3">
-              <div className="relative w-10 h-10 bg-gradient-to-br from-blue-600 via-teal-500 to-cyan-400 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">HM</span>
-              </div>
-              <span className="text-xl font-bold">Hospital Manufacturing</span>
+          {/* LEFT: Slogan & Newsletter */}
+          <div className="space-y-12">
+            <div>
+              <h3 className="text-3xl md:text-5xl font-medium tracking-tight mb-2">
+                Precision. Safety. Excellence.
+              </h3>
+              <p className="text-gray-400 text-lg">
+                Redefining medical manufacturing standards.
+              </p>
             </div>
-            <p className="text-sm text-slate-400">
-              Pioneering excellence in medical device production training and certification. ISO 13485 aligned curriculum.
-            </p>
-          </div>
-          
-          {/* Column 2: Quick Links */}
-          <div>
-            <h4 className="font-bold text-lg mb-4 text-teal-400">Quick Links</h4>
-            <ul className="space-y-2 text-slate-400">
-              <li><a href="#about" className="hover:text-white transition">About Us</a></li>
-              <li><a href="#modules" className="hover:text-white transition">Full Curriculum</a></li>
-              <li><a href="#demo" className="hover:text-white transition">3D Demo</a></li>
-              <li><a href="#manual" className="hover:text-white transition">Download Manual</a></li>
-              <li><a href="#testimonials" className="hover:text-white transition">Testimonials</a></li>
-            </ul>
+
+            <div className="space-y-4">
+              <p className="text-sm text-gray-500 uppercase tracking-widest">Sign up for updates</p>
+              <form className="relative max-w-md group">
+                <input 
+                  type="email" 
+                  placeholder="Email Address" 
+                  className="w-full bg-transparent border-b border-white/20 py-4 text-xl placeholder-gray-600 focus:outline-none focus:border-white transition-colors"
+                />
+                <button type="submit" className="absolute right-0 top-1/2 -translate-y-1/2 opacity-50 group-hover:opacity-100 transition-opacity">
+                  <ArrowRight className="w-6 h-6" />
+                </button>
+              </form>
+            </div>
+
+            <div className="pt-8">
+              <p className="text-sm text-gray-500 uppercase tracking-widest mb-2">Contact</p>
+              <a href="mailto:info@hm.com" className="text-2xl hover:text-gray-300 transition-colors">
+                info@hm.com
+              </a>
+            </div>
           </div>
 
-          {/* Column 3: Contact */}
-          <div>
-            <h4 className="font-bold text-lg mb-4 text-teal-400">Contact Us</h4>
-            <ul className="space-y-3 text-slate-400">
-              <li className="flex items-start gap-3">
-                <MapPin className="w-5 h-5 text-teal-500 shrink-0" />
-                <span>123 Medical Tech Park, Suite 400, Innovation City, CA 90210</span>
-              </li>
-              <li className="flex items-center gap-3">
-                <Phone className="w-5 h-5 text-teal-500 shrink-0" />
-                <span>+1 (800) 555-0199</span>
-              </li>
-              <li className="flex items-center gap-3">
-                <Mail className="w-5 h-5 text-teal-500 shrink-0" />
-                <a href="mailto:info@hospitalmanufacturing.com" className="hover:text-white transition">info@hm.com</a>
-              </li>
+          {/* RIGHT: Navigation Links */}
+          <div className="flex flex-col md:flex-row gap-12 lg:gap-24 lg:justify-end text-lg">
+            
+            {/* Column 1 */}
+            <ul className="space-y-2">
+              <li><span className="text-gray-500 text-sm uppercase tracking-widest block mb-4">Explore</span></li>
+              {['About', 'Modules', 'Manual', 'Demo'].map((item) => (
+                <li key={item}>
+                  <a href={`#${item.toLowerCase()}`} className="block hover:text-gray-400 transition-colors">
+                    {item}
+                  </a>
+                </li>
+              ))}
             </ul>
-          </div>
-          
-          {/* Column 4: Newsletter */}
-          <div>
-            <h4 className="font-bold text-lg mb-4 text-teal-400">Stay Updated</h4>
-            <p className="text-sm text-slate-400 mb-4">
-              Subscribe to our newsletter for the latest regulatory updates and course launches.
-            </p>
-            <form onSubmit={handleNewsletterSubmit} className="flex flex-col space-y-3">
-              <input
-                type="email"
-                name="email"
-                placeholder="Your email address"
-                required
-                className="p-3 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
-              />
-              <button
-                type="submit"
-                className="bg-teal-600 px-4 py-3 rounded-lg font-semibold hover:bg-teal-700 transition"
-              >
-                Subscribe
-              </button>
-            </form>
+
+            {/* Column 2 */}
+            <ul className="space-y-2">
+              <li><span className="text-gray-500 text-sm uppercase tracking-widest block mb-4">Resources</span></li>
+              {['Curriculum', 'Testimonials', 'Student Login'].map((item) => (
+                <li key={item}>
+                  <a href="#" className="block hover:text-gray-400 transition-colors">
+                    {item}
+                  </a>
+                </li>
+              ))}
+            </ul>
+
+            {/* Column 3: Socials */}
+            <ul className="space-y-2">
+              <li><span className="text-gray-500 text-sm uppercase tracking-widest block mb-4">Social</span></li>
+              {['LinkedIn', 'Instagram', 'Twitter'].map((item) => (
+                <li key={item}>
+                  <a href="#" className="group flex items-center gap-1 hover:text-gray-400 transition-colors">
+                    {item} <ArrowUpRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </a>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
 
-        {/* Partners & Copyright */}
-        <div className="mt-16 pt-8 border-t border-slate-800 text-center">
-          <h5 className="text-sm font-semibold mb-4 text-slate-400">Trusted by Professionals at:</h5>
-          <p className="text-xs text-slate-500 italic max-w-4xl mx-auto">
-            {partners.join(' | ')}
-          </p>
-          <p className="text-sm text-slate-500 mt-6">
-            &copy; {new Date().getFullYear()} Hospital Manufacturing. All rights reserved.
-          </p>
+        {/* --- MIDDLE: Partners Text (Subtle) --- */}
+        <div className="flex flex-wrap gap-x-8 gap-y-2 text-sm text-gray-600 mb-12 uppercase tracking-wide">
+          <span>Trusted By:</span>
+          {partners.map((partner, i) => (
+            <span key={i} className="hover:text-gray-400 transition-colors cursor-default">
+              {partner}
+            </span>
+          ))}
         </div>
+
+        {/* --- BOTTOM: MASSIVE BRANDING --- */}
+        <div className="border-t border-white/10 pt-4 flex flex-col md:flex-row justify-between items-end">
+           {/* Copyright / Location */}
+           <div className="flex gap-8 text-xs text-gray-500 uppercase tracking-widest mb-4 md:mb-2">
+              <span>San Francisco — USA</span>
+              <span>&copy; 2024 — 2025</span>
+           </div>
+
+           {/* The "Rejouice" Style Big Text */}
+           <h1 className="text-[13vw] leading-[0.8] font-bold tracking-tighter text-white select-none">
+             HOSPITAL<span className="text-gray-800">MFG</span>
+           </h1>
+        </div>
+
       </div>
     </footer>
   );
