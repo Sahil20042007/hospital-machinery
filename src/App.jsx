@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Navbar from './components/Navbar';
@@ -10,23 +10,25 @@ import Demo from './components/Demo';
 import Curriculum from './components/Curriculum';
 import Testimonials from './components/Testimonials';
 import Footer from './components/Footer';
-
-// IMPORTANT: Import the custom hook for scroll animations
+import FluidHero from './components/FluidHero';
+import MriSection from './components/MriSection';
+// New Components
+import MagicCursor from './components/MagicCursor';
+import BackgroundSlideshow from './components/BackgroundSlideshow';
+import IntroScreen from './components/IntroScreen';
+import PageTransition from './components/PageTransition';
+import GlobalBackground from './components/GlobalBackground';
+// Custom hook
 import useScrollReveal from './hooks/useScrollReveal'; 
 
-// Import global styles (including the scroll-reveal CSS)
+// Styles
 import './styles/globals.css'; 
 
-// --- GSAP FIX: REGISTER PLUGIN GLOBALLY ---
-// This must run once at the application's entry point before any component uses it.
+// GSAP Plugin Registration
 gsap.registerPlugin(ScrollTrigger); 
-
-// --- Component Imports ---
-
 
 // --- 🧩 APPLICATION DATA ---
 const data = {
-    // Data for the <Modules /> component
     modules: [
         { 
             icon: 'Rocket', 
@@ -54,7 +56,6 @@ const data = {
         },
     ],
     
-    // Data for the <Steps /> component
     steps: [
         { id: 1, title: 'Learn the Fundamentals', description: 'Start with materials science and structural mechanics.' },
         { id: 2, title: 'Master 3D Modeling', description: 'Practice parametric modeling of complex assemblies.' },
@@ -62,7 +63,6 @@ const data = {
         { id: 4, title: 'Optimize and Deploy', description: 'Refine designs based on analysis and prepare for manufacturing.' },
     ],
 
-    // Data for the <Curriculum /> component (Example structure)
     curriculum: [
         {
             title: 'Phase I: CAD Mastery',
@@ -81,7 +81,6 @@ const data = {
         },
     ],
 
-    // Data for the <Testimonials /> component (Example structure)
     testimonials: [
         {
             quote: 'This course was the turning point in my career. The project-based learning is unbeatable.',
@@ -100,37 +99,54 @@ const data = {
         },
     ],
     
-    // Data for the <Demo /> component (Hotspot data)
     hotspots: [
         { id: 1, label: 'Structural Joint', description: 'Analyze stress concentration and fatigue life at the main connection points.', details: 'FEA setup: Non-linear contact, fine mesh required.' },
         { id: 2, label: 'Cooling Vent', description: 'Optimize airflow for thermal management and drag reduction using CFD.', details: 'CFD setup: K-epsilon turbulence model, transient analysis.' },
         { id: 3, label: 'Actuator Mount', description: 'Verify stiffness and deflection under maximum operational load.', details: 'FEA setup: Static load case, fixed constraint at base.' },
     ],
 };
-// --- END APPLICATION DATA ---
-
 
 export default function App() {
-    // 3. Initialize the scroll reveal animation hook
+    const [introFinished, setIntroFinished] = useState(false);
+    
+    // Initialize scroll reveal hook
     useScrollReveal();
 
     return (
-        <div className="min-h-screen bg-slate-900 text-white overflow-x-hidden">
-            <Navbar />
-            
-            <main id="main-content">
-                <Hero />
-                <Modules data={data.modules} />
-                <Steps data={data.steps} />
-                <Manual />
-                
-                {/* Pass the hotspot data to the Demo component */}
-                <Demo data={data.hotspots} /> 
-                
-                <Curriculum data={data.curriculum} />
-                <Testimonials data={data.testimonials} />
-                <Footer />
-            </main>
+        <div className="min-h-screen bg-transparent text-white overflow-x-hidden relative">
+            <GlobalBackground />
+            {/* Global UI Layers - Always Present */}
+            <MagicCursor />
+            <BackgroundSlideshow />
+
+            {/* Intro Screen - Shows First */}
+            {!introFinished && (
+                <IntroScreen 
+                    key="intro" 
+                    onFinish={() => setIntroFinished(true)} 
+                />
+            )}
+
+            {/* Main Content - Shows After Intro */}
+            {introFinished && (
+                <PageTransition key="main">
+                    <Navbar />
+                    
+                    <main id="main-content" className="relative z-10">
+                        <FluidHero />
+                        <Hero />
+                        <MriSection />
+                        <Modules data={data.modules} />
+                        <Steps data={data.steps} />
+                        <Manual />
+                        <Demo data={data.hotspots} /> 
+                        <Curriculum data={data.curriculum} />
+                        <Testimonials data={data.testimonials} />
+                    </main>
+
+                    <Footer />
+                </PageTransition>
+            )}
         </div>
     );
 }

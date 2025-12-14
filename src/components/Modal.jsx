@@ -56,7 +56,7 @@ const Modal = ({ hotspot, onClose }) => {
         animate={{ scale: 1, y: 0, opacity: 1 }}
         exit={{ scale: 0.9, y: 50, opacity: 0 }}
         transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-        className="motion-element bg-slate-900 rounded-2xl p-8 max-w-md w-full relative shadow-2xl border border-teal-500/50"
+        className="motion-element bg-transparent rounded-2xl p-8 max-w-md w-full relative shadow-2xl border border-teal-500/50"
         onClick={(e) => e.stopPropagation()}
       >
         <button

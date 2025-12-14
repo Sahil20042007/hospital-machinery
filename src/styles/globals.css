@@ -163,3 +163,11 @@ body {
 .scroll-reveal {
   opacity: 0;
 }
+main section {
+  background-color: transparent !important;
+}
+
+/* Optional: If some backgrounds are still stubborn, use this: */
+.bg-transparent, .bg-slate-950, .bg-black {
+  background-color: transparent !important;
+}

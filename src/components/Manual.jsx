@@ -84,7 +84,7 @@ const Manual = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 , duration: 0.6 }}
-className="bg-slate-900/70 backdrop-blur-sm p-6 rounded-xl border border-slate-700 hover:border-teal-500 transition group"
+className="bg-transparent/70 backdrop-blur-sm p-6 rounded-xl border border-slate-700 hover:border-teal-500 transition group"
 whileHover={{ y: -5 }}
 >
 <div className="p-3 bg-teal-500/10 rounded-lg inline-flex mb-4 group-hover:bg-teal-500/20 transition">
@@ -103,7 +103,7 @@ whileHover={{ y: -5 }}
    initial={{ opacity: 0 }}
    whileInView={{ opacity: 1 }}
    viewport={{ once: true }}
-   className="mt-12 bg-slate-900/50 rounded-xl p-6 border border-slate-700"
+   className="mt-12 bg-transparent/50 rounded-xl p-6 border border-slate-700"
  >
    <button
      onClick={() => setIsOpen(!isOpen)}

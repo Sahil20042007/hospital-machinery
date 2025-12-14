@@ -45,7 +45,7 @@ const Navbar = () => {
             // Apply transition classes and conditional styling based on 'scrolled' state
             className={`fixed top-0 w-full z-50 transition-all duration-500 ${
                 scrolled 
-                    ? 'bg-slate-900/95 backdrop-blur-lg shadow-2xl shadow-blue-900/20 border-b border-slate-800/50 py-3' 
+                    ? 'bg-transparent/95 backdrop-blur-lg shadow-2xl shadow-blue-900/20 border-b border-slate-800/50 py-3' 
                     : 'bg-transparent py-5'
             }`}
             role="navigation"

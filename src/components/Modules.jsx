@@ -1,140 +1,151 @@
-import React, { useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
+import React, { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { Rocket, Layers, Zap, TrendingUp } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
-// Map icon strings to components
-const iconMap = {
-  Rocket,
-  Layers,
-  Zap,
-  TrendingUp
-};
+if (typeof window !== 'undefined') {
+  gsap.registerPlugin(ScrollTrigger);
+}
+
+// Placeholder images
+const placeholderImages = [
+  "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&q=80&w=800",
+  "https://images.unsplash.com/photo-1581093458791-9f302e6d8359?auto=format&fit=crop&q=80&w=800",
+  "https://images.unsplash.com/photo-1530497610245-94d3c16cda28?auto=format&fit=crop&q=80&w=800",
+  "https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&q=80&w=800"
+];
 
 const Modules = ({ data = [] }) => {
   const sectionRef = useRef(null);
-  const cardsRef = useRef([]);
+  const headerRef = useRef(null);
+  const cardRefs = useRef([]);
 
   useEffect(() => {
-    // GSAP ScrollTrigger reveal with rotationX effect for depth
-    const cards = cardsRef.current;
-    
-    gsap.fromTo(
-      cards,
-      {
-        opacity: 0,
-        y: 80,
-        rotationX: -15
-      },
-      {
-        opacity: 1,
-        y: 0,
-        rotationX: 0,
-        stagger: 0.1,
-        duration: 0.8,
-        ease: 'power3.out',
-        scrollTrigger: {
-          trigger: sectionRef.current,
-          start: 'top 85%',
-          end: 'bottom 20%',
-          toggleActions: 'play none none reverse'
+    const ctx = gsap.context(() => {
+      // Header Animation
+      gsap.fromTo(headerRef.current, 
+        { opacity: 0, y: 30 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.8,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: sectionRef.current,
+            start: "top 85%",
+          }
         }
-      }
-    );
+      );
 
-    return () => {
-      ScrollTrigger.getAll().forEach(trigger => {
-        if (trigger.vars.trigger === sectionRef.current) trigger.kill();
-      });
-    };
+      // Cards Stagger Entrance
+      gsap.fromTo(cardRefs.current,
+        { opacity: 0, y: 50 },
+        {
+          opacity: 1,
+          y: 0,
+          stagger: 0.1,
+          duration: 0.8,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: sectionRef.current,
+            start: "top 75%",
+          }
+        }
+      );
+    }, sectionRef);
+    return () => ctx.revert();
   }, []);
 
-  // Magnetic hover effect (CPU-friendly, constrained movement)
-  const handleMouseMove = (e, index) => {
-    const card = cardsRef.current[index];
-    if (!card) return;
-
-    const rect = card.getBoundingClientRect();
-    const x = e.clientX - rect.left - rect.width / 2;
-    const y = e.clientY - rect.top - rect.height / 2;
-
-    // Constrain to ±20px translation and ±5deg rotation
-    const moveX = (x / rect.width) * 20;
-    const moveY = (y / rect.height) * 20;
-    const rotateX = (y / rect.height) * -5;
-    const rotateY = (x / rect.width) * 5;
-
-    gsap.to(card, {
-      x: moveX,
-      y: moveY,
-      rotationX: rotateX,
-      rotationY: rotateY,
-      duration: 0.3,
-      ease: 'power2.out'
-    });
-  };
-
-  const handleMouseLeave = (index) => {
-    const card = cardsRef.current[index];
-    gsap.to(card, {
-      x: 0,
-      y: 0,
-      rotationX: 0,
-      rotationY: 0,
-      duration: 0.5,
-      ease: 'power2.out'
-    });
-  };
-
   return (
-    <section
-      id="about"
-      ref={sectionRef}
-      className="py-24 px-4 sm:px-6 lg:px-8 bg-slate-800/30 relative"
-    >
+    <section id="modules" ref={sectionRef} className="relative py-24 px-4 sm:px-6 lg:px-8 bg-transparent overflow-hidden">
       <div className="max-w-7xl mx-auto relative z-10">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold mb-4">
-            Comprehensive Training Program
+        
+        {/* HEADER */}
+        <div ref={headerRef} className="mb-16">
+          <h2 className="text-5xl md:text-6xl font-bold text-white mb-6 tracking-tight">
+            Research & <br/>
+            <span className="text-[#A100FF]">Development</span>
           </h2>
-          <p className="text-xl text-slate-400 max-w-3xl mx-auto">
-            Four core pillars of medical device manufacturing excellence
-          </p>
+          <div className="w-20 h-1 bg-[#A100FF] mb-6"></div>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {data.map((module, i) => {
-            const IconComponent = iconMap[module.icon] || Rocket;
-            
-            return (
-              <motion.div
-                key={i}
-                ref={(el) => (cardsRef.current[i] = el)}
-                className="motion-element group bg-slate-900/50 backdrop-blur-sm p-8 rounded-2xl border border-slate-700/50 hover:border-teal-500/50 transition-all duration-500 cursor-pointer"
-                style={{ perspective: 1000 }}
-                onMouseMove={(e) => handleMouseMove(e, i)}
-                onMouseLeave={() => handleMouseLeave(i)}
-                whileHover={{ scale: 1.02 }}
-                tabIndex={0}
-                onFocus={() => cardsRef.current[i]?.classList.add('border-teal-500/50')}
-                onBlur={() => cardsRef.current[i]?.classList.remove('border-teal-500/50')}
-              >
-                <div className={`inline-flex p-4 rounded-xl bg-gradient-to-br from-blue-500 to-teal-500 mb-6 group-hover:scale-110 transition transform`}>
-                  <IconComponent className="w-12 h-12 text-white" />
-                </div>
-                <h3 className="text-2xl font-bold mb-4 group-hover:text-teal-400 transition">
-                  {module.title}
-                </h3>
-                <p className="text-slate-400 leading-relaxed">
-                  {module.description}
-                </p>
-              </motion.div>
-            );
-          })}
+        {/* CARD GRID */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {data.map((module, i) => (
+            <AccentureHoverCard 
+              key={i} 
+              index={i} 
+              module={module}
+              image={placeholderImages[i % placeholderImages.length]}
+              addToRefs={(el) => (cardRefs.current[i] = el)} 
+            />
+          ))}
         </div>
       </div>
     </section>
+  );
+};
+
+// --- ✨ COMPONENT: ACCENTURE HOVER CARD ---
+const AccentureHoverCard = ({ module, image, addToRefs }) => {
+  const [isHovered, setIsHovered] = useState(false);
+
+  return (
+    <div
+      ref={addToRefs}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className="relative h-[450px] w-full overflow-hidden cursor-pointer bg-black group"
+    >
+      {/* 1. BACKGROUND IMAGE LAYER (Visible by default) */}
+      <div 
+        className={`absolute inset-0 transition-opacity duration-500 ease-in-out ${isHovered ? 'opacity-0' : 'opacity-100'}`}
+      >
+        <img 
+          src={image} 
+          alt={module.title}
+          className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+        />
+        {/* Gradient for text readability */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
+      </div>
+
+      {/* 2. SOLID COLOR LAYER (Hidden by default, visible on hover) */}
+      <div 
+        className={`absolute inset-0 bg-[#460073] transition-opacity duration-500 ease-in-out ${isHovered ? 'opacity-100' : 'opacity-0'}`}
+      />
+
+      {/* 3. CONTENT CONTAINER */}
+      <div className="absolute inset-0 p-8 flex flex-col justify-end z-20">
+        
+        {/* Top Label (Always visible) */}
+        <div className={`absolute top-8 left-8 text-xs font-bold tracking-widest uppercase transition-colors duration-300 ${isHovered ? 'text-white/80' : 'text-gray-300'}`}>
+          Research Report
+        </div>
+
+        {/* Text Container (Moves up slightly on hover) */}
+        <div className={`transform transition-transform duration-500 ease-out ${isHovered ? '-translate-y-2' : 'translate-y-0'}`}>
+          <h3 className="text-2xl font-bold text-white mb-4 leading-tight">
+            {module.title}
+          </h3>
+          
+          {/* Paragraph Text (Reveal Animation) */}
+          <div 
+            className={`overflow-hidden transition-all duration-500 ease-in-out ${isHovered ? 'max-h-40 opacity-100 mb-4' : 'max-h-0 opacity-0 mb-0'}`}
+          >
+            <p className="text-gray-200 text-sm leading-relaxed">
+              {module.description}
+            </p>
+          </div>
+
+          {/* Expand Button */}
+          <div className="flex items-center text-sm font-bold text-white tracking-wide">
+            <span className="mr-2 group-hover:underline decoration-2 underline-offset-4">Expand</span>
+            <ArrowRight className={`w-5 h-5 transition-transform duration-300 ${isHovered ? 'translate-x-2' : ''}`} />
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 

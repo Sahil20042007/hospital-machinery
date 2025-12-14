@@ -133,7 +133,7 @@ const Demo = ({ data: hotspots = [] }) => {
           </p>
         </motion.div>
 
-        <div className="relative w-full h-[500px] bg-slate-900 rounded-3xl shadow-2xl overflow-hidden border border-teal-500/30">
+        <div className="relative w-full h-[500px] bg-transparent rounded-3xl shadow-2xl overflow-hidden border border-teal-500/30">
           <Suspense fallback={<div className="flex items-center justify-center h-full">Loading 3D Model...</div>}>
             <ThreeDViewer onHotspotPositionUpdate={setHotspotPositions} />
           </Suspense>
@@ -200,7 +200,7 @@ const Demo = ({ data: hotspots = [] }) => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
-              className="bg-slate-900/70 p-6 rounded-xl border border-slate-700 hover:border-teal-500 transition cursor-pointer"
+              className="bg-transparent/70 p-6 rounded-xl border border-slate-700 hover:border-teal-500 transition cursor-pointer"
               onClick={() => setSelectedHotspot(spot)}
               whileHover={{ y: -5 }}
             >

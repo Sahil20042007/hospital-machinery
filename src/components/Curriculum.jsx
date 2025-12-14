@@ -11,7 +11,7 @@ const Curriculum = ({ data = [] }) => {
   };
 
   return (
-    <section id="modules" className="py-24 px-4 sm:px-6 lg:px-8 bg-slate-900">
+    <section id="modules" className="py-24 px-4 sm:px-6 lg:px-8 bg-transparent">
       <div className="max-w-4xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 30 }}

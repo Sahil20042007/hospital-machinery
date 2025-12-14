@@ -28,7 +28,7 @@ const Testimonials = ({ data = [] }) => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.15, duration: 0.6 }}
-              className="bg-slate-900/70 p-8 rounded-3xl border border-slate-700 hover:border-teal-500 transition shadow-2xl"
+              className="bg-transparent/70 p-8 rounded-3xl border border-slate-700 hover:border-teal-500 transition shadow-2xl"
               whileHover={{ y: -10, boxShadow: '0 20px 60px rgba(20, 184, 166, 0.2)' }}
             >
               <Quote className="w-10 h-10 text-teal-500 mb-6 opacity-50" />
