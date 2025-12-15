@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { CheckCircle } from 'lucide-react';
+import { CheckCircle2, Terminal, Cpu, ArrowDown, Database } from 'lucide-react';
 
 const Steps = ({ data = [] }) => {
   const sectionRef = useRef(null);
@@ -10,293 +10,226 @@ const Steps = ({ data = [] }) => {
   const timelinesRef = useRef([]);
 
   useEffect(() => {
-    const mm = gsap.matchMedia();
-
-    // Desktop: Pinned stepper with synchronized timing
-    mm.add('(min-width: 768px)', () => {
+    // 1. Context for Safe Cleanup (Prevents "removeChild" errors)
+    const ctx = gsap.context(() => {
+      const mm = gsap.matchMedia();
       const section = sectionRef.current;
       const steps = stepsRef.current.filter(Boolean);
 
       if (!section || steps.length === 0) return;
 
-      // Calculate scroll distance - MORE space per step
-      const scrollDistance = steps.length * 150; // Increased from 100 to 150vh per step
+      // --- DESKTOP ANIMATION (Pinned "Stack") ---
+      mm.add('(min-width: 768px)', () => {
+        // Reset styles
+        gsap.set(steps, { 
+           opacity: 0, 
+           y: 100, // Start lower for a "slide up" effect
+           scale: 0.95, 
+           position: 'absolute', 
+           top: 0, 
+           left: 0, 
+           width: '100%',
+           zIndex: (i) => i 
+        });
 
-      // Pin the section
-      ScrollTrigger.create({
-        trigger: section,
-        start: 'top top',
-        end: `+=${scrollDistance}vh`,
-        pin: true,
-        pinSpacing: true,
-        scrub: 1,
-        anticipatePin: 1
-      });
+        // Calculate scroll distance (Slower scroll for better readability)
+        const scrollDistance = steps.length * 150; 
 
-      // Create master timeline
-      const masterTimeline = gsap.timeline({
-        scrollTrigger: {
+        // Pinning
+        ScrollTrigger.create({
           trigger: section,
           start: 'top top',
-          end: `+=${scrollDistance}vh`,
-          scrub: 1
-        }
-      });
+          end: `+=${scrollDistance}%`,
+          pin: true,
+          pinSpacing: true,
+          scrub: 1,
+          anticipatePin: 1
+        });
 
-      timelinesRef.current.push(masterTimeline);
-
-      // NEW: Better timing logic - each step gets MORE time
-      steps.forEach((step, i) => {
-        if (!step) return;
-
-        // Each step lifecycle takes MORE timeline space
-        const stepDuration = 1.5; // Increased from 1 to 1.5
-        const startTime = i * stepDuration;
-
-        // Phase 1: Fade IN (30% of time)
-        masterTimeline.fromTo(
-          step,
-          { 
-            opacity: 0, 
-            x: -80,
-            scale: 0.95
-          },
-          {
-            opacity: 1,
-            x: 0,
-            scale: 1,
-            duration: stepDuration * 0.3,
-            ease: 'power2.out'
-          },
-          startTime
-        );
-
-        // Phase 2: STAY VISIBLE (50% of time) - INCREASED
-        masterTimeline.to(
-          step,
-          {
-            opacity: 1,
-            x: 0,
-            scale: 1,
-            duration: stepDuration * 0.5, // Increased from 0.4 to 0.5
-            ease: 'none'
-          },
-          startTime + stepDuration * 0.3
-        );
-
-        // Phase 3: Fade OUT (20% of time) - only if not last step
-        if (i < steps.length - 1) {
-          masterTimeline.to(
-            step,
-            {
-              opacity: 0.2, // More subtle fade
-              x: 50,
-              scale: 0.95,
-              duration: stepDuration * 0.2,
-              ease: 'power2.in'
-            },
-            startTime + stepDuration * 0.8
-          );
-        } else {
-          // Last step stays at full opacity
-          masterTimeline.to(
-            step,
-            {
-              opacity: 1,
-              x: 0,
-              scale: 1,
-              duration: stepDuration * 0.2,
-              ease: 'none'
-            },
-            startTime + stepDuration * 0.8
-          );
-        }
-      });
-
-      // Progress bar
-      if (progressRef.current) {
-        gsap.fromTo(
-          progressRef.current,
-          { scaleX: 0 },
-          {
-            scaleX: 1,
-            ease: 'none',
-            scrollTrigger: {
-              trigger: section,
-              start: 'top top',
-              end: `+=${scrollDistance}vh`,
-              scrub: 1
-            }
-          }
-        );
-      }
-    });
-
-    // Mobile: Simple stacked layout
-    mm.add('(max-width: 767px)', () => {
-      const steps = stepsRef.current.filter(Boolean);
-      
-      if (steps.length === 0) return;
-
-      gsap.fromTo(
-        steps,
-        { opacity: 0, y: 60, scale: 0.9 },
-        {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          stagger: 0.25,
-          duration: 0.8,
-          ease: 'power2.out',
+        // Timeline
+        const tl = gsap.timeline({
           scrollTrigger: {
-            trigger: sectionRef.current,
-            start: 'top 70%',
-            toggleActions: 'play none none reverse'
+            trigger: section,
+            start: 'top top',
+            end: `+=${scrollDistance}%`,
+            scrub: 1
           }
+        });
+        timelinesRef.current.push(tl);
+
+        steps.forEach((step, i) => {
+          const startTime = i * 2; // Spaced out timing
+
+          // Entrance (Mechanical Slide Up)
+          tl.to(step, {
+            opacity: 1,
+            y: 0,
+            scale: 1,
+            duration: 1,
+            ease: "power2.out", // Snappy mechanical ease
+            zIndex: 10 + i
+          }, startTime);
+
+          // Exit (Slide Up and Fade Out - like a stack processing)
+          if (i < steps.length - 1) {
+            tl.to(step, {
+              opacity: 0,
+              y: -50, // Moves UP as it fades
+              scale: 0.9,
+              duration: 1,
+              ease: "power2.in"
+            }, startTime + 2); // Overlap next entrance
+          }
+        });
+
+        // Technical Progress Bar
+        if (progressRef.current) {
+          gsap.fromTo(progressRef.current,
+            { height: "0%" },
+            {
+              height: "100%",
+              ease: 'none',
+              scrollTrigger: {
+                trigger: section,
+                start: 'top top',
+                end: `+=${scrollDistance}%`,
+                scrub: 1
+              }
+            }
+          );
         }
-      );
-    });
-
-    // Cleanup
-    return () => {
-      timelinesRef.current.forEach(tl => {
-        if (tl) tl.kill();
-      });
-      timelinesRef.current = [];
-
-      ScrollTrigger.getAll().forEach(trigger => {
-        trigger.kill();
       });
 
-      stepsRef.current.forEach(step => {
-        if (step) {
-          gsap.set(step, { clearProps: 'all' });
-        }
+      // --- MOBILE ANIMATION (Simple Scroll List) ---
+      mm.add('(max-width: 767px)', () => {
+        gsap.set(steps, { clearProps: 'all', opacity: 0, y: 50 });
+        
+        ScrollTrigger.batch(steps, {
+          onEnter: batch => gsap.to(batch, {
+            opacity: 1, 
+            y: 0, 
+            stagger: 0.15, 
+            duration: 0.6,
+            ease: "back.out(1.7)" 
+          }),
+          start: "top 80%"
+        });
       });
 
-      if (progressRef.current) {
-        gsap.set(progressRef.current, { clearProps: 'all' });
-      }
+    }, sectionRef);
 
-      mm.revert();
-    };
+    return () => ctx.revert();
   }, [data]);
 
   return (
     <section
       ref={sectionRef}
-      className="relative py-24 px-4 sm:px-6 lg:px-8 min-h-screen flex items-center bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900"
+      className="relative py-24 px-4 sm:px-6 lg:px-8 min-h-screen flex flex-col justify-center bg-black overflow-hidden"
     >
-      {/* Background decoration */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 -left-48 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 -right-48 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl" />
+      {/* --- BACKGROUND: TECHNICAL GRID --- */}
+      <div className="absolute inset-0 opacity-20 pointer-events-none">
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#1f2937_1px,transparent_1px),linear-gradient(to_bottom,#1f2937_1px,transparent_1px)] bg-[size:40px_40px]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black via-transparent to-black" />
       </div>
 
-      <div className="max-w-7xl mx-auto w-full relative z-10">
-        {/* Header */}
-        <div className="text-center mb-20">
-          <div className="inline-block mb-4">
-            <span className="text-sm font-semibold tracking-widest uppercase text-teal-400 bg-teal-400/10 px-4 py-2 rounded-full border border-teal-400/20">
-              Learning Path
-            </span>
-          </div>
-          <h2 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
-            Your Learning Journey
-          </h2>
-          <p className="text-xl text-slate-400 max-w-2xl mx-auto leading-relaxed">
-            A structured 24-week program with hands-on certification
-          </p>
-
-          {/* Progress indicator */}
-          <div className="mt-8 max-w-md mx-auto">
-            <div className="h-1 bg-slate-700 rounded-full overflow-hidden">
-              <div 
-                ref={progressRef}
-                className="h-full bg-gradient-to-r from-teal-500 to-blue-500 origin-left"
-              />
-            </div>
-            <p className="text-sm text-slate-500 mt-2">Scroll to explore each step</p>
-          </div>
-        </div>
-
-        {/* Steps Container */}
-        <div className="space-y-8 max-w-4xl mx-auto">
-          {data.map((step, i) => (
-            <div
-              key={step.id}
-              ref={(el) => {
-                if (el) stepsRef.current[i] = el;
-              }}
-              className="relative group"
-            >
-              {/* Connection line */}
-              {i < data.length - 1 && (
-                <div className="hidden md:block absolute left-8 top-20 w-0.5 h-20 bg-gradient-to-b from-teal-500 to-transparent" />
-              )}
-
-              <div className="flex items-start gap-6 bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl p-8 rounded-3xl border border-slate-700/50 hover:border-teal-500/50 transition-all duration-500 shadow-xl">
-                
-                {/* Step Number Circle */}
-                <div className="flex-shrink-0 relative">
-                  <div className="w-16 h-16 bg-gradient-to-br from-teal-500/30 to-blue-500/30 rounded-full flex items-center justify-center border-2 border-teal-400 group-hover:scale-110 transition-transform duration-300">
-                    <CheckCircle className="w-8 h-8 text-teal-400" />
-                    
-                    {/* Glow effect */}
-                    <div className="absolute inset-0 rounded-full bg-teal-400/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </div>
-                  
-                  {/* Step number badge */}
-                  <div className="absolute -top-2 -right-2 w-7 h-7 bg-gradient-to-br from-teal-500 to-blue-500 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-lg">
-                    {i + 1}
-                  </div>
-                </div>
-
-                {/* Content */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-3 mb-3 flex-wrap">
-                    <h3 className="text-2xl md:text-3xl font-bold text-white group-hover:text-teal-400 transition-colors">
-                      {step.title}
-                    </h3>
-                    
-                    {/* Duration badge */}
-                    <span className="text-xs font-semibold px-3 py-1 bg-teal-500/20 text-teal-400 rounded-full border border-teal-500/30">
-                      Week {i * 6 + 1}-{(i + 1) * 6}
-                    </span>
-                  </div>
-
-                  <p className="text-slate-300 text-lg leading-relaxed mb-4">
-                    {step.description}
-                  </p>
-
-                  {/* Feature tags */}
-                  <div className="flex flex-wrap gap-2">
-                    {['Hands-on', 'Certified', 'Industry Ready'].map((tag, idx) => (
-                      <span 
-                        key={idx}
-                        className="text-xs px-3 py-1 bg-slate-700/50 text-slate-400 rounded-full border border-slate-600/50"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-
-                  {/* Hover effect bar */}
-                  <div className="mt-4 h-1 w-0 group-hover:w-full bg-gradient-to-r from-teal-500 to-blue-500 rounded-full transition-all duration-500" />
-                </div>
+      <div className="max-w-6xl mx-auto w-full relative z-10 h-full flex flex-col md:flex-row gap-12 lg:gap-24">
+        
+        {/* --- LEFT COLUMN: FIXED HEADER (Desktop) --- */}
+        <div className="md:w-1/3 flex flex-col justify-center relative z-20">
+           <div className="md:sticky md:top-32">
+              <div className="inline-flex items-center gap-2 mb-6 px-3 py-1 bg-teal-900/30 border border-teal-500/30 rounded text-teal-400 text-xs font-mono uppercase tracking-widest">
+                 <Terminal className="w-3 h-3" />
+                 <span>Sequence_Init</span>
               </div>
-            </div>
-          ))}
+              
+              <h2 className="text-4xl md:text-6xl font-bold text-white mb-6 tracking-tight leading-none">
+                 System <br />
+                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-cyan-400">
+                    Integration
+                 </span>
+              </h2>
+              
+              <p className="text-slate-400 text-lg leading-relaxed mb-8">
+                 A 24-week execution protocol designed to bridge the gap between theory and industrial application.
+              </p>
+
+              {/* Progress Track (Desktop Only) */}
+              <div className="hidden md:block w-1 h-64 bg-slate-800 rounded-full relative overflow-hidden">
+                 <div ref={progressRef} className="w-full bg-teal-500 absolute top-0 left-0" />
+              </div>
+              
+              <div className="mt-8 flex items-center gap-2 text-slate-500 text-xs font-mono uppercase">
+                 <ArrowDown className="w-4 h-4 animate-bounce" />
+                 <span>Scroll to Execute</span>
+              </div>
+           </div>
         </div>
 
-        {/* Completion indicator */}
-        <div className="mt-20 text-center">
-          <div className="inline-flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-teal-500/20 to-blue-500/20 rounded-full border border-teal-400/30">
-            <CheckCircle className="w-5 h-5 text-teal-400" />
-            <span className="text-sm font-semibold text-slate-300">
-              Complete all steps to earn your certification
-            </span>
-          </div>
+        {/* --- RIGHT COLUMN: STEP CARDS --- */}
+        <div className="md:w-2/3 relative h-[600px] md:h-auto"> 
+           {/* Mobile: Standard vertical stack. Desktop: Pinned absolute stack (handled by GSAP) */}
+           <div className="relative w-full h-full">
+              {data.map((step, i) => (
+                <div
+                  key={step.id}
+                  ref={(el) => (stepsRef.current[i] = el)}
+                  className="w-full relative mb-8 md:mb-0 md:opacity-0" // md:opacity-0 hides them until GSAP takes over
+                  style={{ zIndex: i }}
+                >
+                  <div className="bg-[#0B1120] border border-slate-700 p-8 md:p-12 rounded-lg relative overflow-hidden group hover:border-teal-500/50 transition-colors duration-500 shadow-2xl">
+                     
+                     {/* Decorative Tech Corners */}
+                     <div className="absolute top-0 left-0 w-4 h-4 border-t border-l border-teal-500/50" />
+                     <div className="absolute bottom-0 right-0 w-4 h-4 border-b border-r border-teal-500/50" />
+
+                     <div className="flex flex-col md:flex-row gap-8 items-start relative z-10">
+                        
+                        {/* Number Block */}
+                        <div className="flex-shrink-0">
+                           <div className="text-6xl md:text-8xl font-bold font-mono text-slate-800/50 select-none group-hover:text-teal-500/10 transition-colors">
+                              0{i + 1}
+                           </div>
+                        </div>
+
+                        {/* Content */}
+                        <div className="flex-1">
+                           <div className="flex items-center gap-3 mb-4">
+                              <span className="text-xs font-bold font-mono text-teal-400 bg-teal-500/10 px-2 py-1 rounded border border-teal-500/20">
+                                 WEEKS {i * 6 + 1}-{(i + 1) * 6}
+                              </span>
+                              <div className="h-px flex-1 bg-slate-800" />
+                           </div>
+                           
+                           <h3 className="text-2xl md:text-3xl font-bold text-white mb-4">
+                              {step.title}
+                           </h3>
+                           
+                           <p className="text-slate-400 text-lg leading-relaxed mb-6">
+                              {step.description}
+                           </p>
+
+                           {/* Tags */}
+                           <div className="flex flex-wrap gap-2">
+                              {['Lab_Access', 'Cert_Ready', 'Deployment'].map((tag, idx) => (
+                                 <div key={idx} className="flex items-center gap-1 text-[10px] font-mono text-slate-500 bg-slate-900 border border-slate-800 px-2 py-1 rounded">
+                                    <Database className="w-3 h-3" />
+                                    {tag}
+                                 </div>
+                              ))}
+                           </div>
+                        </div>
+
+                     </div>
+                     
+                     {/* Background Glow */}
+                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-teal-500/5 rounded-full blur-3xl group-hover:bg-teal-500/10 transition-colors pointer-events-none" />
+                  </div>
+                </div>
+              ))}
+              
+              {/* Empty spacer for the last element on mobile/desktop flow */}
+              <div className="h-20 md:hidden" />
+           </div>
         </div>
       </div>
     </section>
